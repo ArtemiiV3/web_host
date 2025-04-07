@@ -8,7 +8,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({ ...form, [e.target.name]: e.target.value.trim() });
   };
 
   const handleLogin = async (e) => {

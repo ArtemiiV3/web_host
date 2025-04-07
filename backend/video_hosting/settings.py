@@ -41,6 +41,14 @@ INSTALLED_APPS = [
     'corsheaders',
     'api',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+SIMPLE_JWT = {
+    'AUTHENTICATION_FIELDS': ('username',),  # Явно указываем, что используем username
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
