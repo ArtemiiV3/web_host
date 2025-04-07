@@ -85,7 +85,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'video_hosting_db',
         'USER': 'postgres',  # твой пользователь
-        'PASSWORD': '123',  # твой пароль
+        'PASSWORD': 'postgres',  # твой пароль
         'HOST': 'localhost',
         'PORT': '5432',
     }
