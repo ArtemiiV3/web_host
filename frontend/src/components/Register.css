@@ -1,28 +1,30 @@
-/* Register.css */
 body, html {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
   height: 100vh;
   color: #333;
+  overflow: hidden; /* Убираем прокрутку на body */
 }
 
 .background {
   display: flex;
+  flex-direction: column; /* Меняем направление на колонку для лучшего контроля */
   align-items: center;
-  justify-content: center;
-  height: 100vh; /* Используем 100vh вместо 100%, чтобы гарантировать полную высоту экрана */
-  width: 100vw; /* Устанавливаем ширину на весь экран */
-  background-image: url('/public/fon.png'); /* Путь к изображению */
-  background-size: cover; /* Растягиваем изображение, чтобы оно покрывало весь фон */
-  background-position: center; /* Центрируем изображение */
-  background-repeat: no-repeat; /* Отключаем повторение изображения */
-  position: fixed; /* Фиксируем фон, чтобы он не двигался при прокрутке */
+  justify-content: flex-start;
+  height: 100vh; /* Фиксируем высоту на весь экран */
+  width: 100vw;
+  background-image: url('/public/fon.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: fixed;
   top: 0;
   left: 0;
-  overflow: auto; /* Добавляем прокрутку, если контент выходит за пределы */
+  padding: 1rem; /* Уменьшаем отступы */
+  box-sizing: border-box;
+  overflow-y: auto; /* Добавляем прокрутку по вертикали */
 }
-
 
 .container {
   background: rgba(255, 255, 255, 0.95);
@@ -65,7 +67,9 @@ input {
 }
 
 .submit-btn {
-  margin-top: 1.5rem;
+  position: fixed; /* Фиксируем кнопку */
+  top: 1rem;
+  right: 1rem;
   padding: 0.75rem;
   background: #1a1a80;
   color: white;
@@ -74,6 +78,7 @@ input {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s;
+  z-index: 10; /* Убедимся, что кнопка поверх всего */
 }
 
 .submit-btn:hover {
@@ -84,4 +89,161 @@ input {
   margin-top: 0.5rem;
   font-size: 0.8rem;
   color: #555;
+}
+
+/* Стили для VideoListPage */
+.video-page-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem; /* Уменьшаем зазор */
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 4rem; /* Отступ сверху для кнопки */
+  margin-bottom: 1rem; /* Отступ снизу */
+  flex: 1; /* Растягиваем контейнер */
+}
+
+.main-video {
+  flex: 2;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-video h2 {
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.main-video video {
+  width: 100%;
+  max-height: 40vh; /* Уменьшаем максимальную высоту видео */
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0; /* Не даём видео сжиматься */
+}
+
+.main-video p {
+  color: #ccc;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.other-videos {
+  flex: 1;
+  background-color: #0d0d0d;
+  padding: 1rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #fff;
+  overflow-y: auto; /* Прокрутка внутри списка */
+  max-height: 40vh; /* Уменьшаем высоту списка */
+}
+
+.other-videos h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.video-item {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #1c1c1c;
+  transition: background 0.3s;
+}
+
+.video-item:hover {
+  background-color: #2a2a2a;
+}
+
+.video-item p {
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.video-item video {
+  width: 100%;
+  height: 60px; /* Уменьшаем высоту превью */
+  border-radius: 4px;
+  object-fit: cover;
+  background-color: #000;
+}
+
+.duration {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 0.8rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* Медиа-запросы для отзывчивости */
+@media (max-width: 768px) {
+  .video-page-container {
+    flex-direction: column;
+    margin-top: 4rem;
+  }
+
+  .main-video {
+    flex: none;
+    width: 100%;
+  }
+
+  .main-video video {
+    max-height: 30vh; /* Ещё уменьшаем высоту видео */
+  }
+
+  .other-videos {
+    flex: none;
+    width: 100%;
+    max-height: 30vh; /* Уменьшаем высоту списка */
+  }
+
+  .submit-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .background {
+    padding: 0.5rem;
+  }
+
+  .main-video h2 {
+    font-size: 1.2rem;
+  }
+
+  .main-video video {
+    max-height: 25vh; /* Ещё меньше для маленьких экранов */
+  }
+
+  .other-videos {
+    max-height: 25vh;
+  }
+
+  .other-videos h3 {
+    font-size: 1rem;
+  }
+
+  .video-item p {
+    font-size: 0.8rem;
+  }
+
+  .video-item video {
+    height: 50px;
+  }
 }

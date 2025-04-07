@@ -1,136 +1,101 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Register.css';
 
 const VideoListPage = () => {
   const [videos, setVideos] = useState([]);
   const [activeVideo, setActiveVideo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const fetchVideos = async () => {
+    try {
+      const res = await axios.get('http://127.0.0.1:8000/api/videos/');
+      const updatedVideos = res.data.map(video => ({
+        ...video,
+        video_url: video.video_url.startsWith('http') 
+          ? video.video_url 
+          : `http://127.0.0.1:8000${video.video_url}`
+      }));
+      setVideos(updatedVideos);
+      if (updatedVideos.length > 0 && !activeVideo) {
+        setActiveVideo(updatedVideos[0]);
+      }
+    } catch (err) {
+      console.error('Ошибка при загрузке видео:', err);
+      alert('Ошибка при загрузке видео');
+    }
+  };
 
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        const res = await axios.get('http://127.0.0.1:8000/api/videos/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setVideos(res.data);
-        if (res.data.length > 0) {
-          setActiveVideo(res.data[0]);
-        }
-      } catch (err) {
-        console.error('Ошибка при загрузке видео:', err);
-      }
-    };
-
     fetchVideos();
   }, []);
 
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchVideos();
+    }
+  }, [location.state]);
+
+  const formatDuration = (duration) => {
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   return (
-    <div className="background" style={{ padding: '2rem', position: 'relative' }}>
-      {/* Кнопка "Загрузить видео" */}
+    <div className="background">
       <button
         className="submit-btn"
-        style={{
-          position: 'absolute',
-          top: '2rem',
-          right: '2rem',
-          backgroundColor: '#1a1a80',
-          padding: '0.6rem 1.2rem',
-          fontSize: '1rem',
-          zIndex: 1,
-        }}
         onClick={() => navigate('/upload')}
       >
         Загрузить видео
       </button>
 
-      <div style={{ display: 'flex', gap: '2rem', marginTop: '4rem' }}>
-        {/* Главное видео */}
-        <div style={{ flex: 2 }}>
+      <div className="video-page-container">
+        <div className="main-video">
           {activeVideo ? (
             <div>
-              <h2 style={{ color: '#fff', marginBottom: '1rem' }}>{activeVideo.title}</h2>
+              <h2>{activeVideo.title}</h2>
               <video
                 key={activeVideo.id}
-                width="100%"
-                height="auto"
                 controls
-                style={{ borderRadius: '10px' }}
+                onError={(e) => console.error('Ошибка воспроизведения видео:', e)}
               >
-                <source src={activeVideo.video_file} type="video/mp4" />
+                <source src={activeVideo.video_url} type="video/mp4" />
                 Ваш браузер не поддерживает видео.
               </video>
-              <p style={{ color: '#ccc', marginTop: '1rem' }}>{activeVideo.description}</p>
+              <p>{activeVideo.description || 'Нет описания'}</p>
             </div>
           ) : (
-            <div style={{ color: '#fff' }}>Нет доступных видео</div>
+            <div>Нет доступных видео</div>
           )}
         </div>
 
-        {/* Список других видео */}
         {videos.length > 1 && (
-          <div
-            style={{
-              flex: 1.5,
-              backgroundColor: '#0d0d0d',
-              padding: '1rem',
-              borderRadius: '10px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-              color: '#fff',
-              overflowY: 'auto',
-              maxHeight: '80vh',
-            }}
-          >
-            <h3 style={{ margin: 0, color: '#fff' }}>Другие видео</h3>
-
+          <div className="other-videos">
+            <h3>Другие видео</h3>
             {videos
               .filter((v) => v.id !== activeVideo?.id)
               .map((video) => (
                 <div
                   key={video.id}
+                  className="video-item"
                   onClick={() => setActiveVideo(video)}
-                  style={{
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '6px',
-                    backgroundColor: '#1c1c1c',
-                    transition: 'background 0.3s',
-                  }}
                 >
-                  <p style={{ marginBottom: '0.25rem', fontWeight: 'bold' }}>{video.title}</p>
+                  <p>{video.title}</p>
                   <div style={{ position: 'relative' }}>
                     <video
-                      src={video.video_file}
-                      style={{
-                        width: '100%',
-                        height: '80px',
-                        borderRadius: '4px',
-                        objectFit: 'cover',
-                        backgroundColor: '#000',
-                      }}
+                      src={video.video_url}
                       muted
                       preload="metadata"
-                    />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        bottom: '4px',
-                        right: '6px',
-                        fontSize: '0.8rem',
-                        color: '#fff',
-                        background: 'rgba(0,0,0,0.6)',
-                        padding: '2px 4px',
-                        borderRadius: '3px',
+                      onLoadedMetadata={(e) => {
+                        const duration = e.target.duration;
+                        e.target.nextSibling.textContent = formatDuration(duration);
                       }}
-                    >
-                      ▶️
-                    </span>
+                    />
+                    <span className="duration">0:00</span>
                   </div>
                 </div>
               ))}
