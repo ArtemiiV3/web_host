@@ -5,102 +5,115 @@ import './Register.css';
 
 const UploadVideo = () => {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [videoFile, setVideoFile] = useState(null);
-  const [fileName, setFileName] = useState('');
   const navigate = useNavigate();
+
+  const handleFileChange = (e) => {
+    setVideoFile(e.target.files[0]);
+  };
+
+  // Функция для обновления токена
+  const refreshToken = async () => {
+    try {
+      const refresh = localStorage.getItem('refresh_token');
+      if (!refresh) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
+        refresh: refresh,
+      });
+
+      const newAccessToken = response.data.access;
+      localStorage.setItem('access_token', newAccessToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+      return newAccessToken;
+    } catch (error) {
+      console.error('Ошибка обновления токена:', error.response ? error.response.data : error.message);
+      // Если refresh-токен недействителен, перенаправляем на страницу входа
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      navigate('/login');
+      throw error;
+    }
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
 
-    if (!videoFile) {
-      alert('Выберите видеофайл для загрузки');
+    if (!title || !videoFile) {
+      alert('Пожалуйста, заполните заголовок и выберите видео.');
       return;
     }
 
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('description', description);
-    formData.append('video_file', videoFile); // <-- правильное имя
+    formData.append('video', videoFile);
+
+    let response; // Объявляем response здесь, чтобы она была доступна в обоих try-блоках
 
     try {
-      const token = localStorage.getItem('access_token');
-
-      if (!token) {
-        alert('Вы не авторизованы');
-        return;
-      }
-
-      const response = await axios.post('http://127.0.0.1:8000/api/videos/', formData, {
+      response = await axios.post('http://127.0.0.1:8000/api/video/upload/', formData, {
         headers: {
-          Authorization: `Bearer ${token}`, // <-- исправлено
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'multipart/form-data',
         },
       });
-
-      console.log('Ответ сервера:', response.data);
       alert('Видео успешно загружено!');
       navigate('/videos');
     } catch (error) {
-      console.error('Ошибка при загрузке видео:', error);
-      if (error.response?.data) {
-        console.error('Ответ сервера:', error.response.data);
-        alert(`Ошибка: ${JSON.stringify(error.response.data)}`); // <-- исправлено
+      if (error.response && error.response.status === 401) {
+        try {
+          await refreshToken();
+          // Повторяем запрос с новым токеном
+          response = await axios.post('http://127.0.0.1:8000/api/video/upload/', formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          alert('Видео успешно загружено!');
+          navigate('/videos');
+        } catch (refreshError) {
+          alert('Сессия истекла. Пожалуйста, войдите снова.');
+        }
       } else {
-        alert('Не удалось загрузить видео. Проверьте подключение или формат файла.');
+        console.error('Ошибка загрузки:', error.response ? error.response.data : error.message);
+        alert('Ошибка загрузки видео: ' + (error.response ? error.response.data.error : 'Неизвестная ошибка'));
       }
     }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setVideoFile(file);
-    setFileName(file ? file.name : '');
   };
 
   return (
     <div className="background">
       <div className="container">
-        <h2 style={{ textAlign: 'center', color: '#1a1a80' }}>Загрузить видео</h2>
-        <form className="form" onSubmit={handleUpload}>
-          <label>Название</label>
+        <h2 className="tab-title">Загрузка видео</h2>
+        <div className="form">
+          <h2 className="form-title">Данные для видео</h2>
+
+          <label>Заголовок *</label>
           <input
             type="text"
+            name="title"
+            placeholder="Введите заголовок видео"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Введите название"
             required
           />
 
-          <label>Описание</label>
+          <label>Видео файл *</label>
           <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Введите описание"
+            type="file"
+            name="video"
+            accept="video/*"
+            onChange={handleFileChange}
             required
           />
 
-          <label className="submit-btn" style={{ background: '#4b5cff', marginTop: '1.5rem', textAlign: 'center' }}>
-            Выберите файл
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-          </label>
-
-          {fileName && (
-            <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#333', textAlign: 'center' }}>
-              Файл: {fileName}
-            </div>
-          )}
-
-          <button className="submit-btn" type="submit">
-            Загрузить
+          <button className="submit-btn" onClick={handleUpload}>
+            Загрузить видео
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );

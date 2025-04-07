@@ -1,11 +1,13 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .models import Video
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 def register(request):
@@ -13,31 +15,26 @@ def register(request):
     email = request.data.get('email')
     password = request.data.get('password')
 
-    # Проверка, что все обязательные поля присутствуют
     if not username or not email or not password:
         return Response(
             {"error": "Username, email, and password are required"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Проверка, не существует ли уже пользователь с таким именем
     if User.objects.filter(username=username).exists():
         return Response(
             {"error": "Username already exists"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Создание пользователя с хэшированием пароля
     user = User.objects.create_user(username=username, email=email, password=password)
-    user.is_active = True  # Устанавливаем is_active=True
+    user.is_active = True
     user.save()
 
-    # Генерация токенов для нового пользователя
     refresh = RefreshToken.for_user(user)
     access_token = str(refresh.access_token)
     refresh_token = str(refresh)
 
-    # Возвращаем токены в ответе
     return Response(
         {
             "message": "User created successfully",
@@ -50,10 +47,15 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def video_upload(request):
+    logger.info(f"Received request data: {request.data}")
+    logger.info(f"Received files: {request.FILES}")
+
     title = request.data.get('title')
+    description = request.data.get('description', '')  # Добавляем description, если оно есть
     video_file = request.FILES.get('video')
 
     if not title or not video_file:
+        logger.error("Missing title or video file")
         return Response(
             {"error": "Title and video file are required"},
             status=status.HTTP_400_BAD_REQUEST
@@ -61,6 +63,7 @@ def video_upload(request):
 
     video = Video.objects.create(
         title=title,
+        description=description,  # Передаём description
         video_file=video_file,
         user=request.user
     )
