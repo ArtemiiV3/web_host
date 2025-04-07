@@ -1,0 +1,87 @@
+/* Register.css */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  height: 100vh;
+  color: #333;
+}
+
+.background {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Используем 100vh вместо 100%, чтобы гарантировать полную высоту экрана */
+  width: 100vw; /* Устанавливаем ширину на весь экран */
+  background-image: url('/public/fon.png'); /* Путь к изображению */
+  background-size: cover; /* Растягиваем изображение, чтобы оно покрывало весь фон */
+  background-position: center; /* Центрируем изображение */
+  background-repeat: no-repeat; /* Отключаем повторение изображения */
+  position: fixed; /* Фиксируем фон, чтобы он не двигался при прокрутке */
+  top: 0;
+  left: 0;
+  overflow: auto; /* Добавляем прокрутку, если контент выходит за пределы */
+}
+
+
+.container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.tab-title {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #1a1a80;
+  margin-bottom: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-title {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #1a1a80;
+}
+
+label {
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.submit-btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: #1a1a80;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background: #101070;
+}
+
+.note {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+}
